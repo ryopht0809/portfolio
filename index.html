@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Portfolio — @ryo_pht</title>
+    <!-- React & ReactDOM (UMD, 전역 React/ReactDOM 제공) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- TailwindCSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>:root{color-scheme:dark}</style>
+  </head>
+  <body class="min-h-screen bg-neutral-950 text-neutral-100">
+    <div id="root"></div>
+
+    <!-- 앱 코드: 모듈 import 없이 전역 React 사용 (복붙만 하면 동작) -->
+    <script>
+      const { useState, useEffect, useRef } = React;
+
+      const items = [
+        { id:"1", src:"https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=1200&auto=format&fit=crop", alt:"Portrait in Seoul", title:"Yeouido Blue Hour", tags:["street","portrait","Seoul"], exif:{ camera:"FUJIFILM X-T30 II", lens:"Viltrox 35mm F1.7", focal:"35mm", shutter:"1/250", aperture:"f/2.0", iso:"400", date:"2025-09-20" } },
+        { id:"2", src:"https://images.unsplash.com/photo-1621955964441-0e3c5d6abbd4?q=80&w=1200&auto=format&fit=crop", alt:"City youth vibes", title:"Hapjeong Alley", tags:["urban","j-youth","moody"], exif:{ camera:"FUJIFILM X-T30 II", lens:"Tamron 17-70mm F2.8", focal:"70mm", shutter:"1/320", aperture:"f/2.8", iso:"640", date:"2025-09-15" } },
+        { id:"3", src:"https://images.unsplash.com/photo-1558980664-10ea99e2b79b?q=80&w=1200&auto=format&fit=crop", alt:"Candid portrait", title:"Yeonnam-dong Walk", tags:["candid","film-like","Classic Chrome"], exif:{ camera:"FUJIFILM X-T30 II", lens:"Viltrox 35mm F1.7", focal:"35mm", shutter:"1/200", aperture:"f/2.0", iso:"320", date:"2025-09-07" } },
+        { id:"4", src:"https://images.unsplash.com/photo-1520975954732-35dd222996f2?q=80&w=1200&auto=format&fit=crop", alt:"Quiet moment", title:"Seoul Station 284", tags:["modern-classic","quiet","interior"], exif:{ camera:"FUJIFILM X-T30 II", lens:"Tamron 17-70mm F2.8", focal:"50mm", shutter:"1/160", aperture:"f/2.8", iso:"800", date:"2025-09-05" } },
+        { id:"5", src:"https://images.unsplash.com/photo-1520975582031-4c0b37d2f915?q=80&w=1200&auto=format&fit=crop", alt:"Evening tones", title:"Hangang Footbridge", tags:["blue-hour","bridge","city"], exif:{ camera:"FUJIFILM X-T30 II", lens:"Viltrox 35mm F1.7", focal:"35mm", shutter:"1/125", aperture:"f/2.0", iso:"500", date:"2025-09-03" } },
+      ];
+
+      const ratioToCss = (r) => r.replace("/", " / ");
+
+      function Card({ item, onOpen, thumbRatio }) {
+        const imgRef = useRef(null);
+        return React.createElement(
+          "figure",
+          { className:"group relative mx-auto flex justify-center overflow-visible", onContextMenu:(e)=>e.preventDefault() },
+          React.createElement(
+            "div",
+            { className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
+              style:{ aspectRatio: ratioToCss(thumbRatio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
+              onClick:onOpen
+            },
+            React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
+              React.createElement("div",{ className:"absolute inset-0 bg-center bg-cover blur-md sm:blur-lg scale-110 opacity-60",
+                style:{ backgroundImage:`url(${item.src})` } }),
+              React.createElement("div",{ className:"absolute inset-0 rounded-2xl bg-black/30" })
+            ),
+            React.createElement("img", { ref:imgRef, src:item.src, alt:item.alt, loading:"lazy", decoding:"async",
+              className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover", draggable:false }),
+            React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
+              React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 motion-reduce:transition-none group-hover:bg-black/55" },
+                React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
+                  React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title),
+                  React.createElement("span",{ className:"text-neutral-300" }, "•"),
+                  React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
+                )
+              )
+            )
+          )
+        );
+      }
+
+      function App() {
+        const [openIndex, setOpenIndex] = useState(null);
+        const [view, setView] = useState('feed');
+        const [admin, setAdmin] = useState(false);
+        const [showEditor, setShowEditor] = useState(false);
+        const [gearBody, setGearBody] = useState('X-T30 II');
+        const [gearLens, setGearLens] = useState('35/1.7 · 17-70/2.8');
+        const [planText, setPlanText] = useState('');
+        const [plan, setPlan] = useState([
+          { date:'2025-10-03', title:'일러스타 페스', place:'KINTEX', note:'행사 촬영' },
+          { date:'2025-10-04', title:'일러스타 페스', place:'KINTEX', note:'행사 촬영' },
+          { date:'2025-09-27', title:'부천만화축제', place:'부천', note:'촬영' },
+          { date:'2025-09-28', title:'부천만화축제', place:'부천', note:'촬영' },
+        ]);
+        const [viewMonth, setViewMonth] = useState({ year: 2025, month: 10 });
+        const [selectedDate, setSelectedDate] = useState(null);
+
+        const close = () => setOpenIndex(null);
+        const next = () => setOpenIndex((i) => (i === null ? null : (i + 1) % items.length));
+        const prev = () => setOpenIndex((i) => (i === null ? null : (i - 1 + items.length) % items.length));
+
+        useEffect(() => {
+          function onKey(e){ if(e.key==='Escape') close(); if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') prev(); }
+          window.addEventListener('keydown', onKey);
+          return () => window.removeEventListener('keydown', onKey);
+        }, []);
+
+        useEffect(() => {
+          try {
+            const sp = new URLSearchParams(window.location.search);
+            if (sp.get('admin') === '1') setAdmin(true);
+            const gb = localStorage.getItem('portfolio.gear.body');
+            const gl = localStorage.getItem('portfolio.gear.lens');
+            const legacy = localStorage.getItem('portfolio.gear');
+            if (gb) setGearBody(gb);
+            if (gl) setGearLens(gl);
+            if (!gb && !gl && legacy) {
+              const parts = legacy.split('•');
+              setGearBody((parts[0] || 'X-T30 II').trim());
+              setGearLens((parts[1] || '35/1.7 · 17-70/2.8').trim());
+            }
+            const p = localStorage.getItem('portfolio.plan');
+            let current = p ? JSON.parse(p) : plan;
+            current = (current || []).filter(e => !(e?.date === '2025-10-11' || (e?.title || '').includes('호요랜드')));
+            setPlan(current);
+            setPlanText(JSON.stringify(current, null, 2));
+            localStorage.setItem('portfolio.plan', JSON.stringify(current));
+          } catch {}
+        }, []);
+
+        // 캘린더
+        const y = viewMonth.year, m = viewMonth.month;
+        const first = new Date(y, m - 1, 1);
+        const offset = first.getDay();
+        const last = new Date(y, m, 0).getDate();
+        const cells = Array(offset).fill(null).concat(Array.from({ length: last }, (_, i) => i + 1));
+        while (cells.length % 7) cells.push(null);
+        const weeks = [];
+        for (let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+        const ym = `${y}-${String(m).padStart(2,'0')}`;
+        const planMonth = plan.filter(e => e.date.startsWith(ym));
+        const planMap = planMonth.reduce((acc, e) => { acc[e.date] = (acc[e.date] || []).concat(e); return acc; }, {});
+
+        return React.createElement(
+          "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
+
+          // 헤더
+          React.createElement("header",{ className:"sticky top-0 z-10 border-b border-neutral-800/60 bg-neutral-950/70 backdrop-blur" },
+            React.createElement("div",{ className:"mx-auto flex max-w-screen-sm items-center justify-between py-3" },
+              React.createElement("h1",{ className:"text-base sm:text-lg font-semibold tracking-tight" },
+                React.createElement("span",{ className:"font-semibold" },"Portfolio"),
+                React.createElement("a",{ href:"https://x.com/ryo_pht", target:"_blank", rel:"noopener noreferrer", className:"ml-2 text-neutral-400 underline-offset-4 hover:underline" },"@ryo_pht")
+              ),
+              React.createElement("div",{ className:"flex items-center gap-2" },
+                React.createElement("div",{ className:"rounded-lg bg-neutral-900/60 ring-1 ring-white/10 p-1 text-[11px]" },
+                  React.createElement("button",{ onClick:()=>setView('feed'), className:"px-2 py-1 rounded-md " + (view==='feed' ? "bg-white/15 text-white" : "text-neutral-300 hover:bg-white/5"), "aria-pressed":view==='feed' },"사진"),
+                  React.createElement("button",{ onClick:()=>setView('plan'), className:"ml-1 px-2 py-1 rounded-md " + (view==='plan' ? "bg-white/15 text-white" : "text-neutral-300 hover:bg-white/5"), "aria-pressed":view==='plan' },"플랜")
+                ),
+                React.createElement("div",{ className:"hidden sm:block text-[10px] text-neutral-500 leading-tight text-right" },
+                  React.createElement("div",null,gearBody),
+                  React.createElement("div",{ className:"text-neutral-500/90" },gearLens)
+                )
+              ),
+              admin && React.createElement("button",{ onClick:()=>setShowEditor(true), className:"rounded-md bg-white/10 px-2 py-1 text-[11px] text-white ring-1 ring-white/20 hover:bg-white/15" },"수정")
+            )
+          ),
+
+          // 모바일 기어 워터마크
+          React.createElement("div",{ className:"sm:hidden pointer-events-none fixed right-3", style:{ bottom:"calc(env(safe-area-inset-bottom) + 12px)" } },
+            React.createElement("div",{ className:"rounded-lg bg-white/10 backdrop-blur px-2.5 py-1 text-[10px] text-neutral-200 ring-1 ring-white/15 shadow-md leading-tight" },
+              React.createElement("div",null,gearBody),
+              React.createElement("div",{ className:"opacity-90" },gearLens)
+            )
+          ),
+
+          // 로컬 퀵에디터
+          showEditor && React.createElement("div",{ className:"fixed inset-0 z-50 bg-black/70 backdrop-blur-sm", onClick:()=>setShowEditor(false) },
+            React.createElement("div",{ className:"absolute inset-0 mx-auto my-10 max-w-screen-sm w-[92vw] rounded-2xl bg-neutral-900 p-4 ring-1 ring-white/10", onClick:(e)=>e.stopPropagation() },
+              React.createElement("div",{ className:"flex items-center justify-between" },
+                React.createElement("h3",{ className:"text-sm font-semibold text-neutral-100" },"Quick Edit (local only)"),
+                React.createElement("button",{ className:"rounded-md px-2 py-1 text-xs text-neutral-300 hover:bg-white/10", onClick:()=>setShowEditor(false) },"닫기")
+              ),
+              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Body"),
+              React.createElement("input",{ className:"mt-1 w-full rounded-md bg-black/30 px-2 py-1 text-xs text-neutral-100 ring-1 ring-white/10", value:gearBody, onChange:(e)=>setGearBody(e.target.value) }),
+              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Lenses"),
+              React.createElement("input",{ className:"mt-1 w-full rounded-md bg-black/30 px-2 py-1 text-xs text-neutral-100 ring-1 ring-white/10", value:gearLens, onChange:(e)=>setGearLens(e.target.value) }),
+              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Plan JSON"),
+              React.createElement("textarea",{ className:"mt-1 h-40 w-full rounded-md bg-black/30 p-2 text-xs text-neutral-100 ring-1 ring-white/10", value:planText, onChange:(e)=>setPlanText(e.target.value) }),
+              React.createElement("div",{ className:"mt-3 flex justify-end gap-2" },
+                React.createElement("button",{ className:"rounded-md px-2 py-1 text-xs text-neutral-300 hover:bg-white/10", onClick:()=>setShowEditor(false) },"취소"),
+                React.createElement("button",{ className:"rounded-md bg-white/15 px-2 py-1 text-xs text-white ring-1 ring-white/20 hover:bg-white/25",
+                  onClick:()=>{ try { localStorage.setItem('portfolio.gear.body', gearBody); localStorage.setItem('portfolio.gear.lens', gearLens); localStorage.setItem('portfolio.plan', planText); const parsed = JSON.parse(planText); setPlan(parsed); setShowEditor(false);} catch(e){ alert('Plan JSON이 올바르지 않습니다.'); } } },"저장")
+              ),
+              React.createElement("p",{ className:"mt-2 text-[10px] text-neutral-400" },"* 이 편집기는 이 브라우저에만 저장됩니다(localStorage). 보안이 필요한 배포용은 별도 로그인 구성이 필요해요.")
+            )
+          ),
+
+          // 대표사진 + 피드
+          view!=='plan' && React.createElement(React.Fragment,null,
+            React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
+              React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
+                React.createElement("div",{ className:"relative w-full", style:{ aspectRatio:"3 / 2" } },
+                  React.createElement("img",{ src:items[0].src, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
+                )
+              )
+            ),
+            React.createElement("main",{ className:"mx-auto max-w-screen-sm space-y-5 py-6" },
+              items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i), thumbRatio:(i%2===0?"3/2":"1/1") }))
+            )
+          ),
+
+          // 플랜
+          view==='plan' && React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-3" },
+            React.createElement("div",{ className:"rounded-2xl bg-neutral-900/50 ring-1 ring-white/10 p-3" },
+              React.createElement("div",{ className:"flex items-center justify-between" },
+                React.createElement("h2",{ className:"text-sm font-semibold text-neutral-100" }, `${y}년 ${m}월 플랜`),
+                React.createElement("div",{ className:"rounded-lg bg-neutral-800/60 ring-1 ring-white/10 p-1 text-[11px]" },
+                  React.createElement("button",{ onClick:()=>setViewMonth({year:2025,month:9}), className:"px-2 py-1 rounded-md " + (viewMonth.month===9?"bg-white/15 text-white":"text-neutral-300 hover:bg-white/5"), "aria-pressed":viewMonth.month===9 },"9월"),
+                  React.createElement("button",{ onClick:()=>setViewMonth({year:2025,month:10}), className:"ml-1 px-2 py-1 rounded-md " + (viewMonth.month===10?"bg-white/15 text-white":"text-neutral-300 hover:bg-white/5"), "aria-pressed":viewMonth.month===10 },"10월")
+                )
+              ),
+              React.createElement("div",{ className:"mt-2 grid grid-cols-7 text-center text-[11px] text-neutral-400" },
+                React.createElement("div",null,"Sun"),React.createElement("div",null,"Mon"),React.createElement("div",null,"Tue"),
+                React.createElement("div",null,"Wed"),React.createElement("div",null,"Thu"),React.createElement("div",null,"Fri"),React.createElement("div",null,"Sat")
+              ),
+              React.createElement("div",{ className:"mt-1 grid grid-cols-7 gap-1" },
+                (function(){
+                  const out = [];
+                  const first = new Date(y, m - 1, 1);
+                  const offset = first.getDay();
+                  const last = new Date(y, m, 0).getDate();
+                  const cells = Array(offset).fill(null).concat(Array.from({ length: last }, (_, i) => i + 1));
+                  while (cells.length % 7) cells.push(null);
+                  for (let i=0;i<cells.length;i+=7) {
+                    const w = cells.slice(i,i+7);
+                    w.forEach((d,di)=>{
+                      const dateStr = d ? `${ym}-${String(d).padStart(2,'0')}` : null;
+                      const has = d && planMap[dateStr];
+                      const sel = d && selectedDate===dateStr;
+                      out.push(
+                        React.createElement("button",{
+                          key:i+'-'+di,
+                          onClick:()=>{ if(!d) return; if(has) setSelectedDate(sel?null:dateStr); },
+                          className:"aspect-square rounded-lg text-xs flex items-center justify-center " + (d ? (sel ? "text-neutral-200 bg-neutral-800/80 ring-1 ring-white/20" : "text-neutral-200 bg-neutral-900/60 hover:bg-neutral-800/60 ring-1 ring-white/10") : "bg-transparent"),
+                          disabled:!d,
+                          title:has ? planMap[dateStr].map(e=>e.title).join(', ') : undefined
+                        },
+                          React.createElement("div",{ className:"relative" },
+                            React.createElement("span",null,d ?? ""),
+                            has ? React.createElement("span",{ className:"absolute -bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-emerald-400"}) : null
+                          )
+                        )
+                      );
+                    });
+                  }
+                  return out;
+                })()
+              ),
+              React.createElement("div",{ className:"mt-3 space-y-1" },
+                planMonth.map((e,i)=>{
+                  const active = selectedDate===e.date;
+                  return React.createElement("button",{
+                    key:i, onClick:()=>setSelectedDate(active?null:e.date),
+                    className:"w-full text-left flex items-center justify-between rounded-lg ring-1 px-2 py-1 text-[11px] " + (active ? "bg-neutral-700/40 ring-white/20" : "bg-black/30 ring-white/10 hover:bg-neutral-800/60")
+                  },
+                    React.createElement("span",{ className:"flex items-center gap-2 text-neutral-200" },
+                      React.createElement("span",{ className:"inline-block h-1.5 w-1.5 rounded-full bg-emerald-400"}),
+                      React.createElement("span",null, `${e.date.slice(5)} ${e.title}`)
+                    ),
+                    React.createElement("span",{ className:"text-neutral-400" }, e.place)
+                  );
+                }),
+                !planMonth.length && React.createElement("div",{ className:"text-[11px] text-neutral-400" },"이번 달 일정이 없습니다.")
+              )
+            )
+          ),
+
+          // 라이트박스
+          openIndex!==null && React.createElement("div",{ className:"fixed inset-0 z-50 bg-black/90 backdrop-blur-sm", onContextMenu:(e)=>e.preventDefault(), role:"dialog", "aria-modal":true },
+            React.createElement("div",{ className:"absolute inset-0 flex items-center justify-center p-4", onClick:(e)=>{ if(e.target===e.currentTarget) close(); } },
+              React.createElement("img",{ src:items[openIndex].src, alt:items[openIndex].alt, className:"max-h-[90vh] max-w-[94vw] select-none object-contain cursor-zoom-out", draggable:false, onClick:close }),
+              React.createElement("div",{ className:"absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[90vw] rounded-xl bg-black/40 px-3 py-2 text-center text-[12px] text-neutral-100 ring-1 ring-white/10" },
+                React.createElement("div",{ className:"text-sm font-medium text-neutral-50" }, items[openIndex].title),
+                React.createElement("div",{ className:"mt-1 text-[11px] text-neutral-300" },
+                  `${items[openIndex].exif.camera} / ${items[openIndex].exif.lens} / ${items[openIndex].exif.focal} / ${items[openIndex].exif.shutter} / ${items[openIndex].exif.aperture} / ISO ${items[openIndex].exif.iso} / ${items[openIndex].exif.date}`
+                )
+              ),
+              React.createElement("button",{ className:"absolute right-4 top-4 rounded-full bg-white/10 px-3 py-1 text-sm text-white ring-1 ring-white/20 transition hover:bg-white/20", onClick:close, "aria-label":"닫기" },"닫기"),
+              React.createElement("button",{ className:"absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-xl text-white ring-1 ring-white/20 transition hover:bg-white/20", onClick:prev, "aria-label":"이전" },"‹"),
+              React.createElement("button",{ className:"absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-xl text-white ring-1 ring-white/20", onClick:next, "aria-label":"다음" },"›")
+            )
+          ),
+
+          React.createElement("footer",{ className:"mx-auto max-w-screen-sm pb-14 pt-2 text-center text-xs text-neutral-500" }, `© ${new Date().getFullYear()} @ryo_pht`)
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
