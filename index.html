@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Portfolio — @ryo_pht</title>
-    <!-- React & ReactDOM (UMD, 전역 React/ReactDOM 제공) -->
+    <!-- React & ReactDOM (UMD) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- TailwindCSS (CDN) -->
@@ -14,17 +14,19 @@
   <body class="min-h-screen bg-neutral-950 text-neutral-100">
     <div id="root"></div>
 
-<script src="./items.js"></script>
-    
-    <!-- 앱 코드: 모듈 import 없이 전역 React 사용 (복붙만 하면 동작) -->
+    <!-- ✅ 데이터 먼저 로드 -->
+    <script src="./items.js?v=1"></script>
+
+    <!-- 앱 코드 -->
     <script>
-  const { useState, useEffect, useRef } = React;
-  const items = window.ITEMS || [];
+      const { useState, useEffect, useRef } = React;
+      const items = window.ITEMS || [];
 
       const ratioToCss = (r) => r.replace("/", " / ");
 
       function Card({ item, onOpen, thumbRatio }) {
         const imgRef = useRef(null);
+        const hasTags = Array.isArray(item.tags) && item.tags.length > 0; // ✅ 태그 없을 때도 안전
         return React.createElement(
           "figure",
           { className:"group relative mx-auto flex justify-center overflow-visible", onContextMenu:(e)=>e.preventDefault() },
@@ -33,20 +35,27 @@
             { className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
               style:{ aspectRatio: ratioToCss(thumbRatio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
               onClick:onOpen
-            },
+            ),
             React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
               React.createElement("div",{ className:"absolute inset-0 bg-center bg-cover blur-md sm:blur-lg scale-110 opacity-60",
                 style:{ backgroundImage:`url(${item.src})` } }),
               React.createElement("div",{ className:"absolute inset-0 rounded-2xl bg-black/30" })
             ),
-            React.createElement("img", { ref:imgRef, src:item.src, alt:item.alt, loading:"lazy", decoding:"async",
-              className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover", draggable:false }),
+            React.createElement("img", {
+              ref: imgRef,
+              src: item.src,
+              alt: item.alt || item.title || "",
+              loading: "lazy",
+              decoding: "async",
+              className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover",
+              draggable: false
+            }),
             React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
               React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 motion-reduce:transition-none group-hover:bg-black/55" },
                 React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
-                  React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title),
-                  React.createElement("span",{ className:"text-neutral-300" }, "•"),
-                  React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
+                  React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title || ""),
+                  hasTags && React.createElement("span",{ className:"text-neutral-300" }, "•"),
+                  hasTags && React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
                 )
               )
             )
@@ -104,7 +113,7 @@
           } catch {}
         }, []);
 
-        // 캘린더
+        // 캘린더 계산
         const y = viewMonth.year, m = viewMonth.month;
         const first = new Date(y, m - 1, 1);
         const offset = first.getDay();
@@ -116,6 +125,10 @@
         const ym = `${y}-${String(m).padStart(2,'0')}`;
         const planMonth = plan.filter(e => e.date.startsWith(ym));
         const planMap = planMonth.reduce((acc, e) => { acc[e.date] = (acc[e.date] || []).concat(e); return acc; }, {});
+
+        // ✅ 대표 이미지 안전 처리 (items 없을 때도 오류 안 나게)
+        const hasFirst = items.length > 0;
+        const firstSrc = hasFirst ? items[0].src : "";
 
         return React.createElement(
           "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
@@ -171,12 +184,12 @@
             )
           ),
 
-          // 대표사진 + 피드
-          view!=='plan' && React.createElement(React.Fragment,null,
+          // 대표사진 + 피드 (✅ items가 있을 때만 렌더)
+          view!=='plan' && hasFirst && React.createElement(React.Fragment,null,
             React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
               React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
                 React.createElement("div",{ className:"relative w-full", style:{ aspectRatio:"3 / 2" } },
-                  React.createElement("img",{ src:items[0].src, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
+                  React.createElement("img",{ src:firstSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
                 )
               )
             ),
@@ -251,16 +264,20 @@
             )
           ),
 
-          // 라이트박스
+          // 라이트박스 (✅ exif 없어도 안전)
           openIndex!==null && React.createElement("div",{ className:"fixed inset-0 z-50 bg-black/90 backdrop-blur-sm", onContextMenu:(e)=>e.preventDefault(), role:"dialog", "aria-modal":true },
             React.createElement("div",{ className:"absolute inset-0 flex items-center justify-center p-4", onClick:(e)=>{ if(e.target===e.currentTarget) close(); } },
-              React.createElement("img",{ src:items[openIndex].src, alt:items[openIndex].alt, className:"max-h-[90vh] max-w-[94vw] select-none object-contain cursor-zoom-out", draggable:false, onClick:close }),
-              React.createElement("div",{ className:"absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[90vw] rounded-xl bg-black/40 px-3 py-2 text-center text-[12px] text-neutral-100 ring-1 ring-white/10" },
-                React.createElement("div",{ className:"text-sm font-medium text-neutral-50" }, items[openIndex].title),
-                React.createElement("div",{ className:"mt-1 text-[11px] text-neutral-300" },
-                  `${items[openIndex].exif.camera} / ${items[openIndex].exif.lens} / ${items[openIndex].exif.focal} / ${items[openIndex].exif.shutter} / ${items[openIndex].exif.aperture} / ISO ${items[openIndex].exif.iso} / ${items[openIndex].exif.date}`
-                )
-              ),
+              React.createElement("img",{ src:items[openIndex].src, alt:items[openIndex].alt || items[openIndex].title || "", className:"max-h-[90vh] max-w-[94vw] select-none object-contain cursor-zoom-out", draggable:false, onClick:close }),
+              (function(){
+                const ex = items[openIndex].exif;
+                if (!ex) return null;
+                return React.createElement("div",{ className:"absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[90vw] rounded-xl bg-black/40 px-3 py-2 text-center text-[12px] text-neutral-100 ring-1 ring-white/10" },
+                  React.createElement("div",{ className:"text-sm font-medium text-neutral-50" }, items[openIndex].title || ""),
+                  React.createElement("div",{ className:"mt-1 text-[11px] text-neutral-300" },
+                    `${ex.camera || ""} / ${ex.lens || ""} / ${ex.focal || ""} / ${ex.shutter || ""} / ${ex.aperture || ""} / ${ex.iso ? "ISO " + ex.iso : ""} / ${ex.date || ""}`
+                  )
+                );
+              })(),
               React.createElement("button",{ className:"absolute right-4 top-4 rounded-full bg-white/10 px-3 py-1 text-sm text-white ring-1 ring-white/20 transition hover:bg-white/20", onClick:close, "aria-label":"닫기" },"닫기"),
               React.createElement("button",{ className:"absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-xl text-white ring-1 ring-white/20 transition hover:bg-white/20", onClick:prev, "aria-label":"이전" },"‹"),
               React.createElement("button",{ className:"absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-xl text-white ring-1 ring-white/20", onClick:next, "aria-label":"다음" },"›")
