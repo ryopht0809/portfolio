@@ -19,103 +19,101 @@
 
     <!-- 앱 코드 -->
     <script>
- <script>
-  const { useState, useEffect, useRef } = React;
-  const items = window.ITEMS || [];
+      const { useState, useEffect, useRef } = React;
+      const items = window.ITEMS || [];
 
-  const ratioToCss = (r) => (r || "3/2").replace("/", " / ");
+      const ratioToCss = (r) => r.replace("/", " / ");
 
-  // 모델(X) 링크 렌더 (배열로 반환)
-  function renderModelLinks(models = []) {
-    return models.flatMap((m, i) => {
-      const url = m.url || (m.handle ? `https://x.com/${m.handle.replace(/^@/,'')}` : "#");
-      const label =
-        (m.name && m.handle) ? `${m.name} (${m.handle})` :
-        (m.name || m.handle || "model");
-      return [
-        React.createElement("a", {
-          key: `m${i}`, href: url, target: "_blank", rel: "noopener noreferrer",
-          className: "text-neutral-200 hover:underline"
-        }, label),
-        (i < models.length - 1)
-          ? React.createElement("span", { key: `sep${i}`, className:"text-neutral-400" }, ", ")
-          : null
-      ];
-    });
-  }
+      function Card({ item, onOpen, thumbRatio }) {
+        const imgRef = useRef(null);
+        const hasTags = Array.isArray(item.tags) && item.tags.length > 0;
 
-  function Card({ item, onOpen }) {
-    const imgRef = useRef(null);
-    const hasTags   = Array.isArray(item.tags) && item.tags.length > 0;
-    const hasModels = Array.isArray(item.models) && item.models.length > 0;
-
-    return React.createElement(
-      "figure",
-      { className:"group relative mx-auto flex justify-center overflow-visible", onContextMenu:(e)=>e.preventDefault() },
-      React.createElement(
-        "div",
-        {
-          className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
-          style:{ aspectRatio: ratioToCss(item.ratio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
-          onClick:onOpen
-        },
-        React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
-          React.createElement("div",{ className:"absolute inset-0 bg-center bg-cover blur-md sm:blur-lg scale-110 opacity-60",
-            style:{ backgroundImage: `url(${item.src})` } }),
-          React.createElement("div",{ className:"absolute inset-0 rounded-2xl bg-black/30" })
-        ),
-        React.createElement("img", {
-          ref: imgRef, src: item.src, alt: item.alt || item.title || "",
-          loading:"lazy", decoding:"async",
-          className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover",
-          draggable:false
-        }),
-        React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
-          React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 group-hover:bg-black/55" },
-            React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
-              React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title || ""),
-              hasModels && React.createElement("span",{ className:"text-neutral-300" },"•"),
-              hasModels && React.createElement("span",{ className:"text-neutral-300 flex items-center gap-1" }, renderModelLinks(item.models)),
-              hasTags && React.createElement("span",{ className:"text-neutral-300" },"•"),
-              hasTags && React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
+        return React.createElement(
+          "figure",
+          { className:"group relative mx-auto flex justify-center overflow-visible", onContextMenu:(e)=>e.preventDefault() },
+          React.createElement(
+            "div",
+            {
+              className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
+              style:{ aspectRatio: ratioToCss(thumbRatio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
+              onClick:onOpen
+            },
+            React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
+              React.createElement("div",{ className:"absolute inset-0 bg-center bg-cover blur-md sm:blur-lg scale-110 opacity-60",
+                style:{ backgroundImage: `url(${item.src})` } }),
+              React.createElement("div",{ className:"absolute inset-0 rounded-2xl bg-black/30" })
+            ),
+            React.createElement("img", {
+              ref: imgRef,
+              src: item.src,
+              alt: item.alt || item.title || "",
+              loading: "lazy",
+              decoding: "async",
+              className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover",
+              draggable: false
+            }),
+            React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
+              React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 motion-reduce:transition-none group-hover:bg-black/55" },
+                React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
+                  React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title || ""),
+                  hasTags && React.createElement("span",{ className:"text-neutral-300" }, "•"),
+                  hasTags && React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
+                )
+              )
             )
           )
-        )
-      )
-    );
-  }
+        );
+      }
 
+      function App() {
+        const [openIndex, setOpenIndex] = useState(null);
+        const [view, setView] = useState('feed');
+        const [admin, setAdmin] = useState(false);
+        const [showEditor, setShowEditor] = useState(false);
+        const [gearBody, setGearBody] = useState('X-T30 II');
+        const [gearLens, setGearLens] = useState('35/1.7 · 17-70/2.8');
+        const [planText, setPlanText] = useState('');
+        const [plan, setPlan] = useState([
+          { date:'2025-10-03', title:'일러스타 페스', place:'KINTEX', note:'행사 촬영' },
+          { date:'2025-10-04', title:'일러스타 페스', place:'KINTEX', note:'행사 촬영' },
+          { date:'2025-09-27', title:'부천만화축제', place:'부천', note:'촬영' },
+          { date:'2025-09-28', title:'부천만화축제', place:'부천', note:'촬영' },
+        ]);
+        const [viewMonth, setViewMonth] = useState({ year: 2025, month: 10 });
+        const [selectedDate, setSelectedDate] = useState(null);
 
+        const close = () => setOpenIndex(null);
+        const next = () => setOpenIndex((i) => (i === null ? null : (i + 1) % items.length));
+        const prev = () => setOpenIndex((i) => (i === null ? null : (i - 1 + items.length) % items.length));
 
-       function App() {
-    // ... (state, effects 그대로)
+        useEffect(() => {
+          function onKey(e){ if(e.key==='Escape') close(); if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') prev(); }
+          window.addEventListener('keydown', onKey);
+          return () => window.removeEventListener('keydown', onKey);
+        }, []);
 
- // items 가드 + 대표사진 선택
-const hasItems  = items.length > 0;
-const heroItem  = hasItems ? (items.find(it => it.hero) || items[0]) : null;
-const heroSrc   = heroItem ? heroItem.src : "";
-const heroRatio = heroItem ? (heroItem.ratio || "3/2") : "3/2";
-
-    return React.createElement(
-      "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
-
-      /* ...헤더 생략... */
-
-      // 대표사진 + 피드
-(view!=='plan' && heroItem) && React.createElement(React.Fragment,null,
-  React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
-    React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
-      React.createElement("div",{ className:"relative w-full", style:{ aspectRatio: ratioToCss(heroRatio) } },
-        React.createElement("img",{ src:heroSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
-      )
-    )
-  ),
-  React.createElement("main",{ className:"mx-auto max-w-screen-sm space-y-5 py-6" },
-    items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i) }))
-  )
-),
-      /* ...나머지 그대로(플랜/라이트박스 등)... */
-
+        useEffect(() => {
+          try {
+            const sp = new URLSearchParams(window.location.search);
+            if (sp.get('admin') === '1') setAdmin(true);
+            const gb = localStorage.getItem('portfolio.gear.body');
+            const gl = localStorage.getItem('portfolio.gear.lens');
+            const legacy = localStorage.getItem('portfolio.gear');
+            if (gb) setGearBody(gb);
+            if (gl) setGearLens(gl);
+            if (!gb && !gl && legacy) {
+              const parts = legacy.split('•');
+              setGearBody((parts[0] || 'X-T30 II').trim());
+              setGearLens((parts[1] || '35/1.7 · 17-70/2.8').trim());
+            }
+            const p = localStorage.getItem('portfolio.plan');
+            let current = p ? JSON.parse(p) : plan;
+            current = (current || []).filter(e => !(e?.date === '2025-10-11' || (e?.title || '').includes('호요랜드')));
+            setPlan(current);
+            setPlanText(JSON.stringify(current, null, 2));
+            localStorage.setItem('portfolio.plan', JSON.stringify(current));
+          } catch {}
+        }, []);
 
         // 캘린더 유틸
         const y = viewMonth.year, m = viewMonth.month;
