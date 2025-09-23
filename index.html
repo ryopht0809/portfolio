@@ -19,32 +19,29 @@
 
     <!-- 앱 코드 -->
     <script>
-  <script>
+ <script>
   const { useState, useEffect, useRef } = React;
   const items = window.ITEMS || [];
 
   const ratioToCss = (r) => (r || "3/2").replace("/", " / ");
 
-  // X 모델 링크 렌더
-  function renderModelHandles(models = []) {
-    const out = [];
-    models.forEach((m, i) => {
-      const url = m.url || (m.handle ? `https://x.com/${m.handle.replace(/^@/,'')}` : null);
-      const label = m.handle || m.name || "model";
-      out.push(
+  // 모델(X) 링크 렌더 (배열로 반환)
+  function renderModelLinks(models = []) {
+    return models.flatMap((m, i) => {
+      const url = m.url || (m.handle ? `https://x.com/${m.handle.replace(/^@/,'')}` : "#");
+      const label =
+        (m.name && m.handle) ? `${m.name} (${m.handle})` :
+        (m.name || m.handle || "model");
+      return [
         React.createElement("a", {
-          key: "m" + i,
-          href: url || "#",
-          target: "_blank",
-          rel: "noopener noreferrer",
+          key: `m${i}`, href: url, target: "_blank", rel: "noopener noreferrer",
           className: "text-neutral-200 hover:underline"
-        }, label)
-      );
-      if (i < models.length - 1) {
-        out.push(React.createElement("span", { key: "s" + i, className: "text-neutral-400" }, ", "));
-      }
+        }, label),
+        (i < models.length - 1)
+          ? React.createElement("span", { key: `sep${i}`, className:"text-neutral-400" }, ", ")
+          : null
+      ];
     });
-    return out;
   }
 
   function Card({ item, onOpen }) {
@@ -68,21 +65,18 @@
           React.createElement("div",{ className:"absolute inset-0 rounded-2xl bg-black/30" })
         ),
         React.createElement("img", {
-          ref: imgRef,
-          src: item.src,
-          alt: item.alt || item.title || "",
-          loading: "lazy",
-          decoding: "async",
+          ref: imgRef, src: item.src, alt: item.alt || item.title || "",
+          loading:"lazy", decoding:"async",
           className:"absolute inset-0 h-full w-full rounded-2xl select-none object-cover",
-          draggable: false
+          draggable:false
         }),
         React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
           React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 group-hover:bg-black/55" },
             React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
               React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title || ""),
-              hasModels && React.createElement("span",{ className:"text-neutral-300" }, "•"),
-              hasModels && React.createElement("span",{ className:"text-neutral-300 flex items-center gap-1" }, ...renderModelHandles(item.models)),
-              hasTags && React.createElement("span",{ className:"text-neutral-300" }, "•"),
+              hasModels && React.createElement("span",{ className:"text-neutral-300" },"•"),
+              hasModels && React.createElement("span",{ className:"text-neutral-300 flex items-center gap-1" }, renderModelLinks(item.models)),
+              hasTags && React.createElement("span",{ className:"text-neutral-300" },"•"),
               hasTags && React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
             )
           )
@@ -90,6 +84,7 @@
       )
     );
   }
+
 
 
        function App() {
