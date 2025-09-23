@@ -15,18 +15,31 @@
     <div id="root"></div>
 
     <!-- 데이터 먼저 로드 -->
-    <script src="./items.js?v=1"></script>
+    <script src="./items.js?v=2"></script>
 
     <!-- 앱 코드 -->
     <script>
       const { useState, useEffect, useRef } = React;
       const items = window.ITEMS || [];
 
-      const ratioToCss = (r) => r.replace("/", " / ");
+      const ratioToCss = (r) => (r || "3/2").replace("/", " / ");
 
-      function Card({ item, onOpen, thumbRatio }) {
+      // 모델(X) 링크들을 React 노드 배열로 생성
+      function renderModelLinks(models = []) {
+        return models.map((m, i) => {
+          const url = m.url || (m.handle ? `https://x.com/${m.handle.replace(/^@/, '')}` : "#");
+          const label = (m.name && m.handle) ? `${m.name} (${m.handle})` : (m.name || m.handle || "model");
+          return React.createElement(React.Fragment, { key: "m"+i },
+            React.createElement("a", { href:url, target:"_blank", rel:"noopener noreferrer", className:"hover:underline text-neutral-200" }, label),
+            (i < models.length - 1) ? React.createElement("span", { className:"text-neutral-400" }, ", ") : null
+          );
+        });
+      }
+
+      function Card({ item, onOpen }) {
         const imgRef = useRef(null);
-        const hasTags = Array.isArray(item.tags) && item.tags.length > 0;
+        const hasTags   = Array.isArray(item.tags) && item.tags.length > 0;
+        const hasModels = Array.isArray(item.models) && item.models.length > 0;
 
         return React.createElement(
           "figure",
@@ -35,7 +48,7 @@
             "div",
             {
               className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
-              style:{ aspectRatio: ratioToCss(thumbRatio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
+              style:{ aspectRatio: ratioToCss(item.ratio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
               onClick:onOpen
             },
             React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
@@ -53,9 +66,11 @@
               draggable: false
             }),
             React.createElement("figcaption", { className:"pointer-events-none absolute inset-x-0 bottom-0" },
-              React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 motion-reduce:transition-none group-hover:bg-black/55" },
+              React.createElement("div",{ className:"mx-2 mb-2 rounded-xl bg-black/40 px-3 py-2 backdrop-blur-sm ring-1 ring-white/10 transition-colors duration-200 group-hover:bg-black/55" },
                 React.createElement("div",{ className:"flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-tight" },
                   React.createElement("span",{ className:"font-medium text-neutral-50" }, item.title || ""),
+                  hasModels && React.createElement("span",{ className:"text-neutral-300" }, "•"),
+                  hasModels && React.createElement("span",{ className:"text-neutral-300 flex items-center gap-1" }, renderModelLinks(item.models)),
                   hasTags && React.createElement("span",{ className:"text-neutral-300" }, "•"),
                   hasTags && React.createElement("span",{ className:"text-neutral-300" }, item.tags.join(" · "))
                 )
@@ -83,8 +98,8 @@
         const [selectedDate, setSelectedDate] = useState(null);
 
         const close = () => setOpenIndex(null);
-        const next = () => setOpenIndex((i) => (i === null ? null : (i + 1) % items.length));
-        const prev = () => setOpenIndex((i) => (i === null ? null : (i - 1 + items.length) % items.length));
+        const next  = () => setOpenIndex((i) => (i === null ? null : (i + 1) % items.length));
+        const prev  = () => setOpenIndex((i) => (i === null ? null : (i - 1 + items.length) % items.length));
 
         useEffect(() => {
           function onKey(e){ if(e.key==='Escape') close(); if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') prev(); }
@@ -128,9 +143,11 @@
         const planMonth = plan.filter(e => e.date.startsWith(ym));
         const planMap = planMonth.reduce((acc, e) => { acc[e.date] = (acc[e.date] || []).concat(e); return acc; }, {});
 
-        // items 가드
-        const hasFirst = items.length > 0;
-        const firstSrc = hasFirst ? items[0].src : "";
+        // 대표사진 선택( hero 우선 → 없으면 첫 항목 )
+        const hasItems  = items.length > 0;
+        const heroItem  = hasItems ? (items.find(it => it.hero) || items[0]) : null;
+        const heroSrc   = heroItem ? heroItem.src : "";
+        const heroRatio = heroItem ? (heroItem.ratio || "3/2") : "3/2";
 
         return React.createElement(
           "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
@@ -187,16 +204,17 @@
           ),
 
           // 대표사진 + 피드
-          view!=='plan' && hasFirst && React.createElement(React.Fragment,null,
+          (view!=='plan' && heroItem) && React.createElement(React.Fragment,null,
             React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
               React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
-                React.createElement("div",{ className:"relative w-full", style:{ aspectRatio:"3 / 2" } },
-                  React.createElement("img",{ src:firstSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
+                React.createElement("div",{ className:"relative w-full", style:{ aspectRatio: ratioToCss(heroRatio) } },
+                  React.createElement("img",{ src:heroSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
                 )
               )
             ),
             React.createElement("main",{ className:"mx-auto max-w-screen-sm space-y-5 py-6" },
-              items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i), thumbRatio:(i%2===0?"3/2":"1/1") }))
+              // ⬇️ thumbRatio 넘기지 마세요 (아이템 개별 ratio 사용)
+              items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i) }))
             )
           ),
 
