@@ -17,10 +17,12 @@ window.ITEMS = [
     id: "2",
     src: "./img/250921 1.jpg",
     title: "엘릭 형제",
-    date: "2025-10-10",
+    date: "2025-09-21",
     ratio: "3/2",        // 가로 사진
-    models: [{ handle: "@cos_NUGI", url: "https://x.com/cos_NUGI" },
-            { handle: "@paca_5884",  url: "https://x.com/paca_5884" }],
+    models: [
+      { handle: "@cos_NUGI", url: "https://x.com/cos_NUGI" },
+      { handle: "@paca_5884",  url: "https://x.com/paca_5884" }
+    ],
     tags: ["",""]
   }
 ];
