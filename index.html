@@ -90,11 +90,11 @@
        function App() {
     // ... (state, effects 그대로)
 
-    // items 가드 + 대표사진 선택
-    const hasItems = items.length > 0;
-    const heroItem  = hasItems ? (items.find(it => it.hero) || items[0]) : null;
-    const heroSrc   = heroItem ? heroItem.src : "";
-    const heroRatio = heroItem ? heroItem.ratio || "3/2" : "3/2";
+ // items 가드 + 대표사진 선택
+const hasItems  = items.length > 0;
+const heroItem  = hasItems ? (items.find(it => it.hero) || items[0]) : null;
+const heroSrc   = heroItem ? heroItem.src : "";
+const heroRatio = heroItem ? (heroItem.ratio || "3/2") : "3/2";
 
     return React.createElement(
       "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
@@ -102,19 +102,18 @@
       /* ...헤더 생략... */
 
       // 대표사진 + 피드
-      (view!=='plan' && heroItem) && React.createElement(React.Fragment,null,
-        React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
-          React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
-            React.createElement("div",{ className:"relative w-full", style:{ aspectRatio: ratioToCss(heroRatio) } },
-              React.createElement("img",{ src:heroSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
-            )
-          )
-        ),
-        React.createElement("main",{ className:"mx-auto max-w-screen-sm space-y-5 py-6" },
-          items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i) }))
-        )
-      ),
-
+(view!=='plan' && heroItem) && React.createElement(React.Fragment,null,
+  React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
+    React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
+      React.createElement("div",{ className:"relative w-full", style:{ aspectRatio: ratioToCss(heroRatio) } },
+        React.createElement("img",{ src:heroSrc, alt:"대표 사진", className:"absolute inset-0 h-full w-full object-cover select-none", draggable:false })
+      )
+    )
+  ),
+  React.createElement("main",{ className:"mx-auto max-w-screen-sm space-y-5 py-6" },
+    items.map((it,i)=>React.createElement(Card,{ key:it.id, item:it, onOpen:()=>setOpenIndex(i) }))
+  )
+),
       /* ...나머지 그대로(플랜/라이트박스 등)... */
 
 
