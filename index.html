@@ -14,7 +14,7 @@
   <body class="min-h-screen bg-neutral-950 text-neutral-100">
     <div id="root"></div>
 
-    <!-- ✅ 데이터 먼저 로드 -->
+    <!-- ✅ 데이터 먼저 로드 (캐시 무시용 v=1) -->
     <script src="./items.js?v=1"></script>
 
     <!-- 앱 코드 -->
@@ -26,16 +26,20 @@
 
       function Card({ item, onOpen, thumbRatio }) {
         const imgRef = useRef(null);
-        const hasTags = Array.isArray(item.tags) && item.tags.length > 0; // ✅ 태그 없을 때도 안전
+        const hasTags = Array.isArray(item.tags) && item.tags.length > 0;
+
         return React.createElement(
           "figure",
           { className:"group relative mx-auto flex justify-center overflow-visible", onContextMenu:(e)=>e.preventDefault() },
+
+          // ⬇⬇⬇ 여기: props 닫고 곧바로 닫지 말고, 자식들을 이 안에 넣어야 함
           React.createElement(
             "div",
-            { className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
+            {
+              className:"relative cursor-zoom-in rounded-2xl shadow-lg ring-1 ring-white/10 w-full",
               style:{ aspectRatio: ratioToCss(thumbRatio), WebkitTapHighlightColor:"transparent", touchAction:"manipulation" },
               onClick:onOpen
-            ),
+            },
             React.createElement("div",{ className:"pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl", "aria-hidden":true },
               React.createElement("div",{ className:"absolute inset-0 bg-center bg-cover blur-md sm:blur-lg scale-110 opacity-60",
                 style:{ backgroundImage:`url(${item.src})` } }),
@@ -60,6 +64,7 @@
               )
             )
           )
+          // ⬆⬆⬆ 여기까지가 내부 컨테이너 자식들
         );
       }
 
@@ -113,6 +118,10 @@
           } catch {}
         }, []);
 
+        // ✅ items가 비어있어도 에러 안 나게 가드
+        const hasFirst = items.length > 0;
+        const firstSrc = hasFirst ? items[0].src : "";
+
         // 캘린더 계산
         const y = viewMonth.year, m = viewMonth.month;
         const first = new Date(y, m - 1, 1);
@@ -125,10 +134,6 @@
         const ym = `${y}-${String(m).padStart(2,'0')}`;
         const planMonth = plan.filter(e => e.date.startsWith(ym));
         const planMap = planMonth.reduce((acc, e) => { acc[e.date] = (acc[e.date] || []).concat(e); return acc; }, {});
-
-        // ✅ 대표 이미지 안전 처리 (items 없을 때도 오류 안 나게)
-        const hasFirst = items.length > 0;
-        const firstSrc = hasFirst ? items[0].src : "";
 
         return React.createElement(
           "div", { className:"min-h-screen bg-neutral-950 px-4 text-neutral-100" },
@@ -154,37 +159,7 @@
             )
           ),
 
-          // 모바일 기어 워터마크
-          React.createElement("div",{ className:"sm:hidden pointer-events-none fixed right-3", style:{ bottom:"calc(env(safe-area-inset-bottom) + 12px)" } },
-            React.createElement("div",{ className:"rounded-lg bg-white/10 backdrop-blur px-2.5 py-1 text-[10px] text-neutral-200 ring-1 ring-white/15 shadow-md leading-tight" },
-              React.createElement("div",null,gearBody),
-              React.createElement("div",{ className:"opacity-90" },gearLens)
-            )
-          ),
-
-          // 로컬 퀵에디터
-          showEditor && React.createElement("div",{ className:"fixed inset-0 z-50 bg-black/70 backdrop-blur-sm", onClick:()=>setShowEditor(false) },
-            React.createElement("div",{ className:"absolute inset-0 mx-auto my-10 max-w-screen-sm w-[92vw] rounded-2xl bg-neutral-900 p-4 ring-1 ring-white/10", onClick:(e)=>e.stopPropagation() },
-              React.createElement("div",{ className:"flex items-center justify-between" },
-                React.createElement("h3",{ className:"text-sm font-semibold text-neutral-100" },"Quick Edit (local only)"),
-                React.createElement("button",{ className:"rounded-md px-2 py-1 text-xs text-neutral-300 hover:bg-white/10", onClick:()=>setShowEditor(false) },"닫기")
-              ),
-              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Body"),
-              React.createElement("input",{ className:"mt-1 w-full rounded-md bg-black/30 px-2 py-1 text-xs text-neutral-100 ring-1 ring-white/10", value:gearBody, onChange:(e)=>setGearBody(e.target.value) }),
-              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Lenses"),
-              React.createElement("input",{ className:"mt-1 w-full rounded-md bg-black/30 px-2 py-1 text-xs text-neutral-100 ring-1 ring-white/10", value:gearLens, onChange:(e)=>setGearLens(e.target.value) }),
-              React.createElement("label",{ className:"mt-3 block text-xs text-neutral-300" },"Plan JSON"),
-              React.createElement("textarea",{ className:"mt-1 h-40 w-full rounded-md bg-black/30 p-2 text-xs text-neutral-100 ring-1 ring-white/10", value:planText, onChange:(e)=>setPlanText(e.target.value) }),
-              React.createElement("div",{ className:"mt-3 flex justify-end gap-2" },
-                React.createElement("button",{ className:"rounded-md px-2 py-1 text-xs text-neutral-300 hover:bg-white/10", onClick:()=>setShowEditor(false) },"취소"),
-                React.createElement("button",{ className:"rounded-md bg-white/15 px-2 py-1 text-xs text-white ring-1 ring-white/20 hover:bg-white/25",
-                  onClick:()=>{ try { localStorage.setItem('portfolio.gear.body', gearBody); localStorage.setItem('portfolio.gear.lens', gearLens); localStorage.setItem('portfolio.plan', planText); const parsed = JSON.parse(planText); setPlan(parsed); setShowEditor(false);} catch(e){ alert('Plan JSON이 올바르지 않습니다.'); } } },"저장")
-              ),
-              React.createElement("p",{ className:"mt-2 text-[10px] text-neutral-400" },"* 이 편집기는 이 브라우저에만 저장됩니다(localStorage). 보안이 필요한 배포용은 별도 로그인 구성이 필요해요.")
-            )
-          ),
-
-          // 대표사진 + 피드 (✅ items가 있을 때만 렌더)
+          // 대표사진 + 피드 (items 있을 때만)
           view!=='plan' && hasFirst && React.createElement(React.Fragment,null,
             React.createElement("section",{ className:"mx-auto max-w-screen-sm pt-4" },
               React.createElement("figure",{ className:"relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-md" },
@@ -264,7 +239,7 @@
             )
           ),
 
-          // 라이트박스 (✅ exif 없어도 안전)
+          // 라이트박스 (exif 없어도 안전)
           openIndex!==null && React.createElement("div",{ className:"fixed inset-0 z-50 bg-black/90 backdrop-blur-sm", onContextMenu:(e)=>e.preventDefault(), role:"dialog", "aria-modal":true },
             React.createElement("div",{ className:"absolute inset-0 flex items-center justify-center p-4", onClick:(e)=>{ if(e.target===e.currentTarget) close(); } },
               React.createElement("img",{ src:items[openIndex].src, alt:items[openIndex].alt || items[openIndex].title || "", className:"max-h-[90vh] max-w-[94vw] select-none object-contain cursor-zoom-out", draggable:false, onClick:close }),
