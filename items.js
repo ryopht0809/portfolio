@@ -11,7 +11,6 @@ window.ITEMS = [
       { name: "말곰님",  handle: "@malgom_cos",   url: "https://x.com/malgom_cos" },
       { name: "슈타님",  handle: "@SteinsAnime",  url: "https://x.com/SteinsAnime" }
     ],
-    tags: ["", ""]   // ← 캡션에 보이게 하려면 주석 해제
   },
   {
     id: "2",
@@ -23,6 +22,5 @@ window.ITEMS = [
       { handle: "@cos_NUGI", url: "https://x.com/cos_NUGI" },
       { handle: "@paca_5884",  url: "https://x.com/paca_5884" }
     ],
-    tags: ["",""],
   }
 ];
