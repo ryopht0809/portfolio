@@ -11,15 +11,16 @@ window.ITEMS = [
       { name: "말곰님",  handle: "@malgom_cos",   url: "https://x.com/malgom_cos" },
       { name: "슈타님",  handle: "@SteinsAnime",  url: "https://x.com/SteinsAnime" }
     ],
-    tags: ["cosplay", "anime"]   // ← 캡션에 보이게 하려면 주석 해제
+    tags: ["", ""]   // ← 캡션에 보이게 하려면 주석 해제
   },
   {
     id: "2",
-    src: "./img/sample-horizontal.jpg",
-    title: ".",
+    src: "./img/250921 1.jpg",
+    title: "엘릭 형제",
     date: "2025-10-10",
     ratio: "3/2",        // 가로 사진
-    models: [{ handle: "@ryo_pht", url: "https://x.com/ryo_pht" }],
-    tags: ["street","night"]
+    models: [{ handle: "@cos_NUGI", url: "https://x.com/cos_NUGI" },
+            { handle: "@paca_5884",  url: "https://x.com/paca_5884" }],
+    tags: ["",""]
   }
 ];
