@@ -15,7 +15,7 @@ window.ITEMS = [
   },
   {
     id: "2",
-    src: "./img/250921 1.jpg",
+    src: "./img/250921-1.jpg",
     title: "엘릭 형제",
     date: "2025-09-21",
     ratio: "3/2",        // 가로 사진
