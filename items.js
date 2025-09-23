@@ -23,6 +23,6 @@ window.ITEMS = [
       { handle: "@cos_NUGI", url: "https://x.com/cos_NUGI" },
       { handle: "@paca_5884",  url: "https://x.com/paca_5884" }
     ],
-    tags: ["",""]
+    tags: ["",""],
   }
 ];
