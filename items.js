@@ -26,17 +26,21 @@ window.ITEMS = [
 
   // --- 새로 추가한 3장 (세로 2:3, 제목·태그·모델 비움) ---
   {
-    id: "3",
+    id: "4",
     src: "./img/portfolio-3.jpg",
     title: "오리지널 캐릭터",
     ratio: "2/3",
-    models: ["@yggdra___"]
-  },
+    models: [
+      { handle: "@yggdra___",   url: "https://x.com/yggdra___" }
+      ],
+    },
   {
-    id: "4",
+    id: "3",
     src: "./img/portfolio-4.jpeg",
     title: "미쿠",
     ratio: "2/3",
-    models: ["@nonameine"]
-  },
+    models: [
+      { handle: "@c0srnpcp",   url: "https://x.com/c0srnpcp" }
+      ],
+    },
 ];
