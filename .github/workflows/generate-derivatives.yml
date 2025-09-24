@@ -1,0 +1,43 @@
+name: Generate -t/-f images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]   # 기본 브랜치 이름이 main이 아니라면 바꿔줘
+    paths:
+      - 'img/**'
+      - 'scripts/gen-derivatives.mjs'
+      - '.github/workflows/generate-derivatives.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install sharp
+        run: |
+          npm init -y
+          npm install sharp@^0.33.0
+
+      - name: Generate derivatives (-t / -f)
+        run: node scripts/gen-derivatives.mjs
+
+      - name: Commit generated files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(img): generate -t/-f thumbnails/full'
+          file_pattern: |
+            img/*-t.jpg
+            img/*-t.jpeg
+            img/*-t.png
+            img/*-f.jpg
+            img/*-f.jpeg
+            img/*-f.png
